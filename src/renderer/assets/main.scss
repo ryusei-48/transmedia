@@ -1,0 +1,605 @@
+@charset "utf-8";
+/* webフォント「Noto Serif JP」 */
+@import url("https://fonts.googleapis.com/css?family=Noto+Sans+JP");
+/* fontawesomeの読み込み */
+//@import url("https://use.fontawesome.com/releases/v6.2.1/css/all.css");
+//@import './fontawesome-all.min.css';
+
+$text-color: #c6c4be;
+$bg-color: #0f0f0f;
+$hover-bg-color: #272727;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  color: white;
+  font-family: "Noto Sans JP", "Meiryo", "Hiragino Kaku Gothic ProN", "Hiragino Kaku Gothic Pro", "Noto Sans Japanese",
+    sans-serif, "Font Awesome 6 Free";
+  font-size: 12pt;
+  font-weight: 1;
+  line-height: 1.6;
+  background-attachment: fixed;
+  background: transparent;
+  overflow: hidden;
+  height: 100vh;
+}
+
+h1 {
+  font-size: 12pt;
+  text-align: left;
+  font-weight: normal;
+}
+h2 {
+  font-size: 18pt;
+  text-align: center;
+}
+h3 {
+  font-size: 15pt;
+  text-align: center;
+}
+
+a {
+  text-decoration: none;
+}
+
+// スクロールバーカスタマイズ
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0);
+  border: none;
+  border-radius: 10px;
+  box-shadow: inset 0 0 2px #777;
+  display: none;
+}
+::-webkit-scrollbar-corner {
+  display: none;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(65, 65, 65);
+  border-radius: 10px;
+  box-shadow: none;
+}
+::-webkit-scrollbar-thumb:horizontal {
+  background: rgb(65, 65, 65);
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+input[type="search"],
+input[type="text"],
+input[type="url"],
+textarea {
+  color: $text-color;
+  background-color: #242323;
+  border: unset;
+  outline: unset;
+  &::placeholder {
+    font-size: 15pt;
+  }
+  &:focus {
+    outline: unset;
+  }
+}
+
+button {
+  background-color: transparent;
+  border: unset;
+  color: $text-color;
+  text-align: center;
+  cursor: pointer;
+}
+
+fieldset {
+  border: none;
+  margin-inline-start: unset;
+  margin-inline-end: unset;
+  min-inline-size: unset;
+  padding-block-start: unset;
+  padding-inline-start: unset;
+  padding-inline-end: unset;
+  padding-block-end: unset;
+  legend {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+}
+
+// fontawesomeサイズ指定用
+.ftom-24pt {
+  font-size: 24pt;
+}
+
+// ベースのflexbox
+@mixin flexbese($ac: stretch, $ai: normal, $jc: center) {
+  display: flex;
+  align-content: $ac;
+  align-items: $ai;
+  justify-content: $jc;
+  flex-flow: row wrap;
+  width: 100%;
+}
+
+// ベースのメディアクエリ
+$pc: 1024px; // PC
+$tab: 680px; // タブレット
+$sp: 480px; // スマホ
+
+@mixin pc {
+  @media (max-width: ($pc)) {
+    @content;
+  }
+}
+@mixin tab {
+  @media (max-width: ($tab)) {
+    @content;
+  }
+}
+@mixin sp {
+  @media (max-width: ($sp)) {
+    @content;
+  }
+}
+
+// #####################
+// ウィンドウタイトルバー
+// #####################
+header {
+  display: block;
+  width: 100vw;
+  height: 25.6px;
+  background-color: rgb(75, 75, 75);
+  -webkit-app-region: drag;
+  @include flexbese;
+  .app-name {
+    flex-basis: calc(100% - 120px);
+  }
+  #minimize-win,
+  #maximize-win {
+    flex-basis: 40px;
+    button {
+      color: white;
+      background-color: transparent;
+      border: none;
+      width: 100%;
+      height: 100%;
+      &:hover {
+        background-color: rgb(113, 113, 113);
+      }
+    }
+    -webkit-app-region: no-drag;
+  }
+  #close-win {
+    flex-basis: 40px;
+    button {
+      color: white;
+      background-color: transparent;
+      border: none;
+      width: 100%;
+      height: 100%;
+      &:hover {
+        background-color: rgb(255, 32, 32);
+      }
+    }
+    -webkit-app-region: no-drag;
+  }
+}
+
+// ##################
+// メインパネル
+// ##################
+main {
+  position: relative;
+  width: 100vw;
+  height: calc(100vh - 25.6px);
+  background-color: $bg-color;
+  .instance-panel {
+    @include flexbese($jc: left);
+    height: 100%;
+    .operation-etc-panel {
+      flex-basis: 100%;
+      height: 50px;
+      @include flexbese;
+      .left-btns {
+        flex-basis: 25%;
+        button {
+          width: 50%;
+          height: 50%;
+          text-align: center;
+          border-radius: 15px;
+          padding: 0;
+          border: unset;
+          font-size: 11pt;
+          color: $text-color;
+          background-color: transparent;
+          cursor: pointer;
+          transition: all 0.4s;
+          &:hover {
+            background-color: $hover-bg-color;
+          }
+        }
+        /*button#add-inscetance-btn {
+          background-color: blueviolet;
+        }
+        button#add-bookmark-btn {
+          background-color: orangered;
+        }*/
+      }
+      .search-box {
+        flex-basis: 55%;
+        position: relative;
+        input[type="search"] {
+          width: 100%;
+          height: 100%;
+          font-size: 15pt;
+          padding: 10px;
+          padding-top: 15px;
+          padding-right: 48px;
+          &::placeholder {
+            font-size: 15pt;
+          }
+        }
+        button {
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: auto;
+          height: 100%;
+          background-color: transparent;
+          border: unset;
+          color: $text-color;
+          font-size: 15pt;
+          text-align: center;
+          padding: 0 14px;
+          line-height: 100%;
+          cursor: pointer;
+        }
+      }
+      .filter-parts {
+        flex-basis: 20%;
+        text-align: right;
+        button {
+          display: inline-block;
+          width: auto;
+          height: 100%;
+          background-color: transparent;
+          border: unset;
+          color: $text-color;
+          font-size: 20pt;
+          text-align: center;
+          padding: 0 10px;
+          line-height: 100%;
+          cursor: pointer;
+          transition: all 0.4s;
+          &:hover {
+            background-color: $hover-bg-color;
+          }
+        }
+        button#change-design {
+          border-left: 1px dotted gray;
+          margin-left: 5px;
+        }
+      }
+    }
+    .tag-and-content-wrap {
+      flex-basis: 100%;
+      height: calc(100% - 50px);
+      position: relative;
+      box-sizing: border-box;
+      @include flexbese($jc: left);
+      .tag-select-panel {
+        height: 100%;
+        position: relative;
+        box-sizing: border-box;
+        min-width: 200px;
+        max-width: 500px;
+        flex-basis: 250px;
+        overflow: hidden;
+        > ul.tag-tree {
+          position: absolute;
+          top: 0;
+          left: 0;
+          padding: 5px 0;
+          max-height: 100%;
+          width: 100%;
+          overflow: scroll;
+          li {
+            //padding: 2px 10px;
+            white-space: nowrap;
+            span.for-hover {
+              position: relative;
+              display: inline-block;
+              min-width: 180px;
+              padding-right: 15px;
+              transition: all 0.1s;
+              &:hover {
+                background-color: #414141;
+              }
+              button {
+                text-align: left;
+                font-size: 12pt;
+                width: auto;
+              }
+              button.expansion {
+                padding: 2px 10px;
+                padding-right: 5px;
+              }
+              button.tag-name {
+                padding: 2px 5px;
+                min-width: 160px;
+              }
+              button.tag-menu-btn {
+                position: absolute;
+                top: 0;
+                right: 0;
+                padding: 2px;
+                height: 100%;
+                line-height: 100%;
+              }
+              ul.tag-menu-element {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                width: 100px;
+                background-color: black;
+                z-index: 1;
+                li {
+                  width: 100%;
+                  cursor: pointer;
+                  transition: all .1s;
+                  &:hover {
+                    background-color: #414141;
+                  }
+                }
+              }
+            }
+          }
+        }
+        ul.tag-tree.sub {
+          position: unset;
+          top: unset;
+          left: unset;
+          max-height: unset;
+          overflow: unset;
+          padding-left: 15px;
+          list-style: none;
+        }
+      }
+      .resize-panel-bar {
+        flex-basis: 4px;
+        background-color: rgb(76, 76, 76);
+        position: relative;
+        z-index: 2;
+        cursor: col-resize;
+      }
+      .contents-panel {
+        //flex-basis: calc(100% - 254px);
+        flex-grow: 1;
+        min-width: 0;
+        flex-direction: row;
+        position: relative;
+        //max-width: calc( 100% - 350px );
+        //border: 1px solid #c6c4be;
+      }
+    }
+  }
+}
+
+// ポップアップパーツ
+.instance-select-element-wrap,
+.add-bookmark-modal-wrap,
+.add-rss-feed-modal-wrap,
+.add-text-modal-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 109, 4, 0.3);
+  z-index: 1;
+  opacity: 0;
+  transition: all 0.5s;
+}
+
+.base-modal-element {
+  // @extend
+  position: absolute;
+  max-height: calc(100vh - 150px);
+  z-index: 2;
+  background-color: $bg-color;
+  padding: 25px;
+  text-align: center;
+  opacity: 0;
+  transition: all 0.2s;
+  .tags_blocks_wrap {
+    display: block;
+    width: 100%;
+    padding: 7px;
+    background-color: #242323;
+    text-align: left;
+    span.selected-label > button {
+      margin-right: 5px;
+      padding: 4px;
+      background-color: #555555;
+      border-radius: 10px;
+    }
+    span.tag_input_wrap {
+      position: relative;
+      min-width: 50px;
+      input[type="text"].tag_input {
+        display: inline !important;
+        width: unset !important;
+        min-width: 50px;
+        border-bottom: unset !important;
+        &:focus {
+          border-bottom: unset !important;
+        }
+      }
+      span.tag_suggest {
+        position: absolute;
+        width: 100%;
+        top: 100%;
+        left: 0;
+        opacity: 0;
+        background-color: rgb(38, 38, 38);
+        button {
+          display: block;
+          width: 100%;
+          padding: 4px 8px;
+          border-bottom: 1px solid #484848;
+          &:hover {
+            background-color: #555555;
+          }
+        }
+      }
+    }
+    span.tag_blocks {
+      display: inline !important;
+    }
+  }
+}
+
+.instance-select-element {
+  @extend .base-modal-element;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  transform: translateY(100%);
+  .instance-names {
+    display: inline-block;
+    button {
+      border: 1px solid gray;
+      padding: 6px 15px;
+    }
+    span.label-wrap {
+      position: relative;
+      margin-right: 4px;
+      input[type="text"] {
+        padding: 10px;
+        padding-right: 8.4px;
+        font-size: 11pt;
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+      }
+      button.delete {
+        position: absolute;
+        right: 0;
+        top: 0;
+        border: unset;
+        background-color: transparent;
+        padding: 6px 10px;
+      }
+    }
+  }
+}
+
+.add-bookmark-modal {
+  @extend .base-modal-element;
+  top: 100px;
+  left: 50%;
+  width: 60%;
+  max-width: 760px;
+  text-align: center;
+  transform: translate(-50%, -20%);
+  h2 {
+    margin-bottom: 15px;
+  }
+}
+
+.add-rss-feed-modal {
+  @extend .base-modal-element;
+  top: 100px;
+  left: 50%;
+  width: 60%;
+  max-width: 760px;
+  transform: translate(-50%, -20%);
+}
+
+.add-text-modal {
+  @extend .base-modal-element;
+  top: 60px;
+  left: 50%;
+  width: 75%;
+  transform: translate(-50%, -20%);
+  div#show-add-text-field {
+    flex-basis: 100%;
+    margin-top: 10px;
+    padding-top: 5px;
+    padding-left: 25px;
+    padding-right: 0px;
+    min-height: 300px;
+    max-height: calc(100vh - 45vh);
+    text-align: left;
+    overflow-y: scroll;
+    background-color: #242323;
+  }
+}
+
+.instance-select-element-wrap.show,
+.add-bookmark-modal-wrap.show,
+.add-rss-feed-modal-wrap.show,
+.add-text-modal-wrap.show {
+  opacity: 1;
+  + .instance-select-element {
+    transform: translateY(0%);
+    opacity: 1;
+  }
+  + .add-bookmark-modal,
+  + .add-rss-feed-modal,
+  + .add-text-modal {
+    transform: translateX(-50%);
+    opacity: 1;
+  }
+}
+
+fieldset.forms {
+  @include flexbese($ai: center);
+  margin-top: 10px;
+  div.label {
+    flex-basis: 20%;
+    padding: 10px 5px;
+    label {
+      width: 100%;
+      font-size: 13pt;
+    }
+  }
+  div.form {
+    flex-basis: 80%;
+    padding: 10px 5px;
+    input[type="text"],
+    input[type="url"] {
+      display: inline-block;
+      width: 100%;
+      font-size: 13pt;
+      padding: 5px;
+      border-bottom: 2px solid gray;
+      transition: all 0.2s;
+      &:focus {
+        border-bottom: 2px solid rgb(0, 162, 5);
+      }
+    }
+    input[type="file"] {
+      display: inline-block;
+      text-align: center;
+    }
+  }
+  button.send-btn {
+    display: block;
+    width: 100px;
+    padding: 6px 0;
+    font-size: 15pt;
+    background-color: rgb(0, 162, 5);
+    color: $text-color;
+    margin-top: 20px;
+    cursor: pointer;
+  }
+}
