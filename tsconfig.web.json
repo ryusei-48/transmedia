@@ -1,10 +1,10 @@
 {
-  //"extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
-  "include": ["src/renderer/src/*.ts", "src/renderer/src/*.tsx", "src/preload/*.d.ts" ],
+  "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
+  "include": ["src/renderer/src/**/*.ts", "src/renderer/src/**/*.tsx", "src/preload/*.d.ts" ],
   //"include": ["src/*"],
   "compilerOptions": {
     "composite": true,
-    "target": "ES2020",
+    /*"target": "ES2020",
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
@@ -15,7 +15,7 @@
     //"types": [ "vite/client" ],
     //"types": [ "electron-vite/client" ]
 
-    /* Bundler mode */
+    // Bundler mode
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
@@ -25,11 +25,11 @@
     //"emitDeclarationOnly": true,
     "jsx": "react-jsx",
 
-    /* Linting */
+    // Linting
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true*/
   },
-  "references": [{ "path": "./tsconfig.node.json"}],
+  //"references": [{ "path": "./tsconfig.node.json"}],
 }

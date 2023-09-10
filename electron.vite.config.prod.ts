@@ -7,7 +7,7 @@ export default defineConfig({
   main: {
     plugins: [
       externalizeDepsPlugin(),
-      bytecodePlugin({ protectedStrings: [ "ready-to-show" ] })
+      bytecodePlugin({ protectedStrings: [ "idnfiI8DONSI1OS5Difj4di" ] })
     ],
     build: {
       minify: true,

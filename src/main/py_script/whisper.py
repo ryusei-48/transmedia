@@ -1,6 +1,6 @@
 import sys, glob, json, re
 
-print("########## Start of character arrival [script-start] ##########")
+print("########## Start of character arrival [script-start][02] ##########")
 
 try:
     from torch import cuda
@@ -44,7 +44,7 @@ if len( glob.glob( f"{ mediaSourcePath }\\transcribe.json" ) ) > 0:
             if not skip_flag:
                 word_start_tmp = word["start"]
                 skip_flag = True
-            if re.search( r"(\.|。)$", word["text"] ):
+            if re.search( r"(\.|\?|。)$", word["text"] ):
                 plasticated_result.append({
                     "start": word_start_tmp,
                     "end": word["end"], "text": re.sub( r"^\s+", "", word_tmp )
@@ -55,4 +55,4 @@ if len( glob.glob( f"{ mediaSourcePath }\\transcribe.json" ) ) > 0:
 with open( f"{ mediaSourcePath }\\plasticated.json", "w", encoding="utf-8" ) as json_file:
     json.dump( plasticated_result, json_file, indent=2, ensure_ascii=False )
 
-print("########## End of character arrival [script-end][DeepL] ##########")
+print("########## End of character arrival [script-end][02][DeepL] ##########")

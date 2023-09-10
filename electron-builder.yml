@@ -8,9 +8,15 @@ files:
   - '!electron.vite.config.{js,ts,mjs,cjs}'
   - '!{.eslintignore,.eslintrc.js,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+extraResources:
+  - 'extra/'
 asarUnpack:
   - resources/*
 afterSign: build/notarize.js
+fileAssociations:
+  - ext: 'tsap'
+    name: 'tsap'
+    description: 'Transmedia Playerで開く'
 win:
   executableName: transmedia
 nsis:
@@ -18,6 +24,7 @@ nsis:
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+  perMachine: true
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:

@@ -1,6 +1,6 @@
 import sys, glob, json, re
 
-print("########## Start of character arrival [script-start] ##########")
+print("########## Start of character arrival [script-start][02] ##########")
 
 try:
     from torch import cuda
@@ -11,7 +11,8 @@ except ImportError:
     
 mediaSourcePath = sys.argv[1]
 mediaFilePath = glob.glob( f"{ mediaSourcePath }\\*" )[0]
-model_size = "large-v2"
+model_size = sys.argv[2]
+useLang = sys.argv[3] if sys.argv[3] else None
 transcribe_results = []
 plasticated_result = []
 
@@ -21,7 +22,8 @@ model = WhisperModel(
 )
 segments, info = model.transcribe(
     mediaFilePath, beam_size=5, word_timestamps=True,
-    initial_prompt="こんにちは、私は山田です。Hello, I am Yamada."
+    initial_prompt="こんにちは、私は山田です。Hello, I am Yamada.",
+    language=useLang
 )
 
 print("Detected language '%s' with probability %f" % (info.language, info.language_probability))
@@ -44,7 +46,7 @@ if len( glob.glob( f"{ mediaSourcePath }\\transcribe.json" ) ) > 0:
             if not skip_flag:
                 word_start_tmp = word["start"]
                 skip_flag = True
-            if re.search( r"(\.|。)$", word["text"] ):
+            if re.search( r"(\.|\?|。)$", word["text"] ):
                 plasticated_result.append({
                     "start": word_start_tmp,
                     "end": word["end"], "text": re.sub( r"^\s+", "", word_tmp )
@@ -55,4 +57,4 @@ if len( glob.glob( f"{ mediaSourcePath }\\transcribe.json" ) ) > 0:
 with open( f"{ mediaSourcePath }\\plasticated.json", "w", encoding="utf-8" ) as json_file:
     json.dump( plasticated_result, json_file, indent=2, ensure_ascii=False )
 
-print("########## End of character arrival [script-end][DeepL] ##########")
+print("########## End of character arrival [script-end][02][DeepL] ##########")

@@ -4,7 +4,7 @@
   //"include": ["electron.vite.config.dev.ts", "electron.vite.config.prod.ts"],
   "compilerOptions": {
     "composite": true,
-    "types": ["electron-vite/node"],
+    /*"types": ["electron-vite/node"],
     //"types": ["vite/client"],
     "skipLibCheck": true,
     "module": "ESNext",
@@ -12,6 +12,7 @@
     "allowSyntheticDefaultImports": true,
     "resolvePackageJsonExports": false,
     "noImplicitThis": false,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "strict": true*/
   }
 }

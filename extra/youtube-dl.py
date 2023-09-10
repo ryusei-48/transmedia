@@ -1,6 +1,6 @@
 import sys
 
-print("########## Download videos from YouTube [script-start] ##########")
+print("########## Download videos from YouTube [script-start][01] ##########")
 
 try:
   from yt_dlp import YoutubeDL
@@ -14,4 +14,4 @@ ydl = YoutubeDL({
 })
 result = ydl.download([ sys.argv[1] ])
 
-print("########## End of download [script-end] ##########")
+print("########## End of download [script-end][01] ##########")

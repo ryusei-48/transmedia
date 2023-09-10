@@ -1,42 +1,52 @@
 /// <reference types="electron-vite/node" />
 import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
-import { join } from 'path'
+import { join, extname, basename, dirname, isAbsolute, resolve } from 'path'
+import Store from 'electron-store';
 import pty from 'node-pty';
-import fs from "fs";
+import fs, { constants } from "fs";
 import icon from '../../build/icon.png?asset'
-import youtube_dl_py from './py_script/youtube-dl.py?asset'
-import whisper_py from './py_script/whisper.py?asset';
 
 if ( !app.requestSingleInstanceLock() ) app.exit(0);
 
-//export type storeConfig = { instance?: { label: string, id: number, path: string }[] }
+const APP_PATH = resolve( app.getAppPath(), app.isPackaged ? `..\\` : '.' );
+const youtube_dl_py = resolve( APP_PATH, '.\\extra\\youtube-dl.py' );
+const whisper_py = resolve( APP_PATH, '.\\extra\\whisper.py' );
 
-//const USER_DATA_PATH = app.getPath('userData');
-//const STORAGE_PATH = USER_DATA_PATH + '/storage/database';
+type AppConfig = {
+  sourceLang: 'auto' | 'en' | 'ja', isTranslate: boolean,
+  whisperModel: 'tiny' | 'base' | 'small' | 'medium' | 'large' | 'large-v2',
+  processInterval: number
+}
 
 const transmedia: {
 
   Windows: { main?: BrowserWindow, deepl?: BrowserWindow, players: BrowserWindow[] },
   windowClosable: boolean, ptyProcess?: pty.IPty,
   isPtySendable: boolean,
-  //storage: { [key: number]: { db?: Database.Database, stmt?: { [key: string]: Database.Statement } } },
-  //config: Store<storeConfig>,
+  config: Store<AppConfig>,
   run: () => void,
-  createWindowInstance: () => BrowserWindow,
-  createPlayer: () => Promise<BrowserWindow>,
+  createWindowInstance: ( isShow: boolean ) => Promise<BrowserWindow>,
+  createPlayer: ( mediaPath: string ) => Promise<BrowserWindow>,
   deeplTranslateFrame: () => Promise<BrowserWindow>
 
 } = {
 
-  Windows: { players: [] }, //storage: {}, 
+  Windows: { players: [] },
   windowClosable: false, isPtySendable: false,
-  //config: new Store<storeConfig>({ encryptionKey: 'ymzkrk33' }),
+  config: new Store({ encryptionKey: 'idnfiI8DONSI1OS5Difj4di' }),
 
   run: function () {
 
+    if ( this.config.size === 0 ) {
+      this.config.store = {
+        sourceLang: 'auto', isTranslate: true,
+        whisperModel: 'base', processInterval: 1000
+      }
+    }
+
     app.whenReady().then( async () => {
 
-      transmedia.Windows.main = this.createWindowInstance();
+      transmedia.Windows.main = await this.createWindowInstance( false );
       transmedia.Windows.deepl = await this.deeplTranslateFrame();
 
       transmedia.ptyProcess = pty.spawn( `powershell.exe`, [], {
@@ -61,40 +71,87 @@ const transmedia: {
         }
       });
 
-      if ( process.argv.length >= 3 ) {
-        transmedia.Windows.players.push( await transmedia.createPlayer() );
-      }
+      if ( process.argv.length >= 2 ) {
+        const checkPath = process.argv.slice(-1)[0];
+        if ( await pathExist( checkPath ) && isAbsolute( checkPath ) ) {
+          transmedia.Windows.players.push( await transmedia.createPlayer( dirname( checkPath ) ) );
+        } else this.Windows.main?.show();
+      } else this.Windows.main?.show();
 
-      app.on('activate', () => {
+      /*app.on('activate', () => {
         // On macOS it's common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
         if (BrowserWindow.getAllWindows().length === 0) transmedia.createWindowInstance();
-      });
+      });*/
     });
 
-    app.on('second-instance', (e, argv) => {
+    app.on('second-instance', async (e, argv) => {
       e.preventDefault();
-      console.log( argv );
+      
+      const checkPath = argv.slice(-1)[0];
+      if ( await pathExist( checkPath ) ) {
+        this.Windows.players.push( await this.createPlayer( dirname( checkPath ) ) )
+      }
     });
 
-    ipcMain.on('window-close', () => {
-      this.windowClosable = true;
-      app.quit();
-      //app.exit(0);
+    ipcMain.on('config-update', (_, config) => {
+      /*this.config.set('sourceLang', config.sourceLang );
+      this.config.set('isTranslate', config.isTranslate );
+      this.config.set('whisperModel', config.whisperModel );
+      this.config.set('processInterval', config.processInterval );*/
+      this.config.store = config;
     });
 
-    app.on('before-quit', async () => {
-      console.log('Attempting to quit app');
+    ipcMain.on('window-close', (_, pid) => {
+
+      if ( pid ) {
+        for ( const [ index, player ] of this.Windows.players.entries() ) {
+          if ( player.id === pid ) {
+            player.close();
+            this.Windows.players.splice( index, 1 ); break;
+          }
+        }
+
+        if ( this.Windows.players.length === 0 && this.Windows.main?.isVisible() ) return;
+      }
+
+      if ( this.Windows.players.length === 0 ) {
+        this.windowClosable = true; app.quit();
+      } else if ( !pid ) this.Windows.main?.hide();
     });
 
-    ipcMain.on('window-maximize', () => {
-      if (this.Windows.main?.isMaximized()) {
-        this.Windows.main?.unmaximize();
-      } else this.Windows.main?.maximize();
+    ipcMain.on('window-maximize', (_, pid) => {
+
+      if ( pid ) {
+        for ( const player of this.Windows.players ) {
+          if ( player.id === pid ) {
+            if ( player.isMaximized() ) {
+              player.unmaximize();
+            } else player.maximize();
+          }
+        }
+      } else {
+        if (this.Windows.main?.isMaximized()) {
+          this.Windows.main?.unmaximize();
+        } else this.Windows.main?.maximize();
+      }
     });
 
-    ipcMain.on('window-minize', () => {
-      this.Windows.main?.minimize();
+    ipcMain.on('window-minize', (_, pid) => {
+      
+      if ( pid ) {
+        for ( const player of this.Windows.players ) {
+          if ( player.id === pid ) {
+            player.minimize();
+          }
+        }
+      } else this.Windows.main?.minimize();
+    });
+
+    ipcMain.on('open-main-window', () => {
+      if ( this.Windows.main?.isVisible() ) {
+        this.Windows.main.focus();
+      } else this.Windows.main?.show();
     });
 
     ipcMain.on('open-deepl-client', () => {
@@ -107,9 +164,14 @@ const transmedia: {
 
       if ( formData.mediaSourceId === 10 ) {
         transmedia.ptyProcess?.write(
+          formData.isDownloadOnly ?
+          [
+            'python', youtube_dl_py, formData.mediaSourcePath, formData.savePath
+          ].join(' ') + "\r"
+          :
           [
             'python', youtube_dl_py, formData.mediaSourcePath, formData.savePath + ';',
-            'python', whisper_py, formData.savePath
+            'python', whisper_py, formData.savePath, formData.whisperModel, formData.sourceLang
           ].join(' ') + "\r"
         );
       } else if ( formData.mediaSourceId === 30 ) {
@@ -130,8 +192,15 @@ const transmedia: {
         start: number, end: number, text: string,
         translated_texts: { [ key: string ]: string }
       }[] = []
+      const totalCount = plasticated.length - 1;
 
-      for ( const subtitle of plasticated ) {
+      for ( const [ index, subtitle ] of plasticated.entries() ) {
+        
+        this.Windows.main?.webContents.send(
+          'translate-status',
+          totalCount !== index ? `翻訳中...（${ index } / ${ totalCount }）` : ''
+        );
+
         await transmedia.Windows.deepl?.webContents.executeJavaScript(
           `window.location.href = "https://www.deepl.com/ja/translator#en/ja/${ subtitle.text }"`, true
         );
@@ -144,7 +213,7 @@ const transmedia: {
           if ( translateText !== "" ) {
             translated.push({ ...subtitle, translated_texts: { ja: translateText }})
             /*console.log( translateText );*/ break;
-          } else await sleep( 1000 );
+          } else await sleep( this.config.store.processInterval );
         }
       }
 
@@ -187,7 +256,7 @@ const transmedia: {
         properties: ['openFile'],
         title: '読み込むメディアファイルを選択してください。',
         defaultPath: app.getPath('home'),
-        filters: [{ name: 'media', extensions: [ 'mp3', 'm4a', 'wav', 'mp4' ] }]
+        filters: [{ name: 'media', extensions: [ 'mp3', 'm4a', 'wav', 'mp4', 'webm' ] }]
       });
 
       if ( !result.canceled ) {
@@ -195,8 +264,8 @@ const transmedia: {
       } else return null;
     });
 
-    ipcMain.on('self-run-player', async (_, /*savePath*/) => {
-      transmedia.Windows.players.push( await transmedia.createPlayer() );
+    ipcMain.on('self-run-player', async (_, savePath) => {
+      this.Windows.players.push( await this.createPlayer( savePath ) );
     });
 
     // Quit when all windows are closed, except on macOS. There, it's common
@@ -209,11 +278,11 @@ const transmedia: {
     });
   },
 
-  createWindowInstance: function () {
+  createWindowInstance: async function ( isShow = true ) {
 
     const window = new BrowserWindow({
-      width: 900,
-      height: 600,
+      width: 812, height: 680,
+      minWidth: 790, minHeight: 680,
       show: false, frame: false,
       autoHideMenuBar: true,
       backgroundColor: "#0f0f0f",
@@ -224,31 +293,37 @@ const transmedia: {
       }
     });
 
-    window.on('ready-to-show', () => {
-      window.show()
-    })
+    if ( isShow ) {
+      window.on('ready-to-show', () => {
+        window.show()
+      })
+    }
 
     window.webContents.setWindowOpenHandler((details) => {
       shell.openExternal(details.url)
       return { action: 'deny' }
     })
 
+    window.webContents.on('did-finish-load', () => {
+      window.webContents.send('config', { ...this.config.store });
+    });
+
     // HMR for renderer base on electron-vite cli.
     // Load the remote URL for development or the local html file for production.
     if (!app.isPackaged && process.env['ELECTRON_RENDERER_URL']) {
-      window.loadURL(process.env['ELECTRON_RENDERER_URL']);
+      await window.loadURL(process.env['ELECTRON_RENDERER_URL']);
     } else {
-      window.loadFile(join(__dirname, '../renderer/index.html'));
+      await window.loadFile(join(__dirname, '../renderer/index.html'));
     }
 
     return window;
   },
 
-  createPlayer: async function () {
+  createPlayer: async function ( mediaPath ) {
     
     const player = new BrowserWindow({
-      width: 900,
-      height: 600,
+      width: 900, height: 750,
+      minWidth: 500, minHeight: 300,
       show: false, frame: false,
       autoHideMenuBar: true,
       backgroundColor: "#0f0f0f",
@@ -263,12 +338,37 @@ const transmedia: {
       player.show()
     });
 
+    player.webContents.on('did-finish-load', () => {
+      fs.readdir( mediaPath, (err, dirList) => {
+        if ( err ) throw err;
+        const mediaFile = dirList.filter((dir) => {
+          return dir.match(/\.(mp4|webm)$/) ? true : false;
+        });
+        const extension = extname( mediaFile[0] );
+        const title = basename( mediaFile[0], extension );
+        fs.readFile( mediaPath + `\\` + mediaFile[0], (err, buffer) => {
+          if ( err ) throw err;
+          if ( extension === '.webm' ) {
+            player.webContents.send('media-stream', { mime: 'video/webm', buffer, title });
+          } else player.webContents.send('media-stream', { mime: 'video/mp4', buffer, title });
+        });
+      });
+
+      fs.access( `${ mediaPath }\\translated.json`, constants.F_OK, (err) => {
+        if ( err ) throw err;
+        fs.readFile( `${ mediaPath }\\translated.json`, { encoding: 'utf-8' }, (err, file) =>{
+          if ( err ) throw err;
+          player.webContents.send('subtitle-json', JSON.parse( file ));
+        });
+      });
+    });
+
     // HMR for renderer base on electron-vite cli.
     // Load the remote URL for development or the local html file for production.
     if (!app.isPackaged && process.env['ELECTRON_RENDERER_URL']) {
-      await player.loadURL(process.env['ELECTRON_RENDERER_URL'] + `/player.html`)
+      await player.loadURL(process.env['ELECTRON_RENDERER_URL'] + `/player.html?pid=${ player.id }`)
     } else {
-      await player.loadFile(join(__dirname, '../renderer/player.html'))
+      await player.loadURL(`file:\\\\${ join(__dirname, `../renderer/player.html`) }` + `?pid=${ player.id }`)
     }
 
     return player;
@@ -277,8 +377,8 @@ const transmedia: {
   deeplTranslateFrame: async function () {
 
     const deeplWindow = new BrowserWindow({
-      width: 1000,
-      height: 700,
+      width: 1000, height: 700,
+      minWidth: 500, minHeight: 350,
       show: false, frame: true,
       autoHideMenuBar: true,
       backgroundColor: "#0f0f0f",
@@ -324,13 +424,24 @@ function randomString(len: number = 10): string {
 }
 */
 
+async function pathExist( path: string ) {
+
+  return new Promise<boolean>((resolve) => {
+    fs.access( path, constants.F_OK, (err) => {
+      if ( !err ) {
+        resolve( true );
+      } else resolve( false );
+    });
+  });
+}
+
 function sleep( sec: number ) {
 
   return new Promise<void>((resolve) => {
     setTimeout(() => {
       resolve();
     }, sec);
-  });
+  })
 }
 
 transmedia.run();
