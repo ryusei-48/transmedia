@@ -10,7 +10,7 @@ fp.close()
 
 pipeline = Pipeline.from_pretrained(
     'pyannote/speaker-diarization',
-    use_auth_token="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"
+    use_auth_token="xxxxxxxxxxxxxxxxxxxxxxxxx"
 )
 
 DEMO_FILE = {'uri': 'blabal', 'audio': mediaFilePath}
