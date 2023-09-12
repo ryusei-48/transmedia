@@ -56,5 +56,8 @@ if len( glob.glob( f"{ mediaSourcePath }\\transcribe.json" ) ) > 0:
                 
 with open( f"{ mediaSourcePath }\\plasticated.json", "w", encoding="utf-8" ) as json_file:
     json.dump( plasticated_result, json_file, indent=2, ensure_ascii=False )
+with open( f"{ mediaSourcePath }\\plasticated.plain.txt", mode="w", encoding="utf-8" ) as txt_file:
+    for index, plasticated in enumerate( plasticated_result ):
+        txt_file.write( str( index ) + ': ' + plasticated['text'] + "\n" )
 
 print("########## End of character arrival [script-end][02][DeepL] ##########")

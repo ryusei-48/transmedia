@@ -207,7 +207,7 @@ const transmedia: {
 
         for ( let i=0; i<15; i++ ) {
           const translateText = await transmedia.Windows.deepl?.webContents.executeJavaScript(
-            `[...translateElem][1].textContent;`, true
+            `[...translateElem][0].textContent;`, true
           )
 
           if ( translateText !== "" ) {
@@ -401,7 +401,7 @@ const transmedia: {
     deeplWindow.webContents.on('did-finish-load', async () => {
 
       let scriptText = `
-      const translateElem = document.body.querySelectorAll("div.lmt__inner_textarea_container > d-textarea > div");
+      const translateElem = document.body.querySelectorAll("div[aria-labelledby='translation-target-heading']");
       `;
       deeplWindow.webContents.executeJavaScript( scriptText, true);
     });
